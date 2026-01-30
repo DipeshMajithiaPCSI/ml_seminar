@@ -5,6 +5,29 @@ import PageWrapper from '../components/layout/PageWrapper'
 import Button from '../components/ui/Button'
 import useGameStore from '../stores/gameStore'
 import confetti from 'canvas-confetti'
+import GameFeedback from '../components/ui/GameFeedback'
+
+const LEVELS = [
+    {
+        id: 1,
+        type: 'blobs',
+        name: "Simple Clustering (ML)",
+        description: "Standard Machine Learning handles these easily.",
+        k: 3,
+        explanation: "K-Means simply looks for the center of mass. Since these blobs are far apart, distance is enough to separate them.",
+        winGif: "https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif"
+    },
+    {
+        id: 2,
+        type: 'circles',
+        name: "Complex Manifolds (DL)",
+        description: "Can simple distance separate these rings?",
+        k: 2,
+        explanation: "Simple ML failed because it only draws straight lines (Euclidean distance). Deep Learning 'unrolls' this data into higher dimensions to separate it perfectly.",
+        failGif: "https://media.giphy.com/media/11ISwbgCxEzMyY/giphy.gif", // Only for DL success really
+        winGif: "https://media.giphy.com/media/Um3ljJl8jrnHy/giphy.gif" // Mind blown
+    }
+]
 
 // Simple implementation of K-Means for the demo
 const useKMeans = (points, k) => {
@@ -64,39 +87,65 @@ const GroupTheData = () => {
     const navigate = useNavigate()
     const { completeExperiment, setScore } = useGameStore()
     
-    // Steps: 'intro' -> 'drawing' -> 'reveal' -> 'completed'
+    const [levelIndex, setLevelIndex] = useState(0)
+    // Steps: 'intro' -> 'drawing' -> 'reveal_kmeans' -> 'reveal_dl' (only for lvl 2)
     const [step, setStep] = useState('intro') 
     const [points, setPoints] = useState([])
+    const [showFeedback, setShowFeedback] = useState(false)
     
     // User Interaction
-    const [userGroups, setUserGroups] = useState([]) // Array of paths/circles drawn by user
-    const [isDrawing, setIsDrawing] = useState(false)
-    const svgRef = useRef(null)
-    const currentPath = useRef([])
+    const [selectedGroup, setSelectedGroup] = useState(0)
+    const [pointAssignments, setPointAssignments] = useState({}) 
     
-    const { run: runAI, centroids, clusters } = useKMeans(points, 3)
+    const level = LEVELS[levelIndex]
+    const { run: runAI, centroids, clusters } = useKMeans(points, level.k)
 
-    // Generate random points on mount
+    // Generate points based on level type
     useEffect(() => {
         const pts = []
-        // Generate 3 distinct blobs for clearer visuals (Reduced overlap)
-        const centers = [{x: 20, y: 20}, {x: 80, y: 20}, {x: 50, y: 80}] 
-        centers.forEach(c => {
-            for(let i=0; i<8; i++) {
-                // Use polar coordinates to push points away from the absolute center
-                // This ensures the "Centroid" revealed later is clearly visible
-                const angle = Math.random() * Math.PI * 2
-                const radius = 5 + Math.random() * 8 // Random radius between 5% and 13%
-                
+        if (level.type === 'blobs') {
+            const centers = [{x: 20, y: 20}, {x: 80, y: 20}, {x: 50, y: 80}] 
+            centers.forEach((c, idx) => {
+                for(let i=0; i<8; i++) {
+                    const angle = Math.random() * Math.PI * 2
+                    const radius = 5 + Math.random() * 8
+                    pts.push({
+                        x: c.x + Math.cos(angle) * radius,
+                        y: c.y + Math.sin(angle) * radius,
+                        id: Math.random(),
+                        trueGroup: idx // For cheating/verifying
+                    })
+                }
+            })
+        } else if (level.type === 'circles') {
+            // Inner Circle
+            for(let i=0; i<15; i++) {
+                const angle = (i / 15) * Math.PI * 2
+                const radius = 15 + Math.random() * 5
                 pts.push({
-                    x: c.x + Math.cos(angle) * radius,
-                    y: c.y + Math.sin(angle) * radius,
-                    id: Math.random()
+                    x: 50 + Math.cos(angle) * radius,
+                    y: 50 + Math.sin(angle) * radius,
+                    id: Math.random(),
+                    trueGroup: 0 // Inner
                 })
             }
-        })
+            // Outer Ring
+            for(let i=0; i<30; i++) {
+                const angle = (i / 30) * Math.PI * 2
+                const radius = 35 + Math.random() * 5
+                pts.push({
+                    x: 50 + Math.cos(angle) * radius,
+                    y: 50 + Math.sin(angle) * radius,
+                    id: Math.random(),
+                    trueGroup: 1 // Outer
+                })
+            }
+        }
         setPoints(pts)
-    }, [])
+        setPointAssignments({})
+        setStep('drawing') // Skip intro for subsequent levels
+        if (levelIndex === 0) setStep('intro')
+    }, [levelIndex])
 
     const handleStart = () => {
         setStep('drawing')
@@ -104,25 +153,34 @@ const GroupTheData = () => {
 
     const handleReveal = () => {
         runAI()
-        setStep('reveal')
-        confetti({
-            particleCount: 100,
-            spread: 70,
-            origin: { y: 0.6 }
-        })
-        completeExperiment('group-the-data')
-        setScore('group-the-data', 100)
+        setStep('reveal_kmeans')
+        
+        if (level.type === 'blobs') {
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } })
+        }
+        // For 'circles', we don't celebrate yet because K-Means fails
     }
 
-    // --- Drawing Logic for User Grouping ---
-    /* 
-       Simplified for standard web: instead of complex drawing, 
-       click points to toggle their "User Group" color? 
-       OR just drag a lasso? Lasso is cooler but harder.
-       Alternative: "Click to Select" -> Assign Group 1, Group 2...
-    */
-    const [selectedGroup, setSelectedGroup] = useState(0)
-    const [pointAssignments, setPointAssignments] = useState({}) // pointId -> groupIndex
+    const handleDLReveal = () => {
+        setStep('reveal_dl')
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#a855f7', '#d8b4fe'] })
+    }
+
+    const handleNext = () => {
+        // Show feedback modal
+        setShowFeedback(true)
+    }
+
+    const onFeedbackClose = () => {
+        setShowFeedback(false)
+        if (levelIndex < LEVELS.length - 1) {
+            setLevelIndex(prev => prev + 1)
+        } else {
+            completeExperiment('group-the-data')
+            setScore('group-the-data', 100)
+            navigate('/experiment/4')
+        }
+    }
 
     const togglePoint = (pId) => {
         if(step !== 'drawing') return
@@ -134,12 +192,23 @@ const GroupTheData = () => {
 
     return (
         <PageWrapper>
+            <GameFeedback 
+                isOpen={showFeedback}
+                isSuccess={true}
+                gifUrl={level.winGif}
+                title={levelIndex === 0 ? "Pattern Recognized" : "Deep Learning Success"}
+                description={levelIndex === 0 ? "K-Means found the blobs." : "Deep Learning untangled the rings."}
+                explanation={level.explanation}
+                onNext={onFeedbackClose}
+                nextLabel={levelIndex < LEVELS.length - 1 ? "Next Challenge: Complex Data" : "Next: Context & Language"}
+            />
+
             <div className="min-h-screen flex flex-col items-center justify-center p-6 text-white max-w-6xl mx-auto">
                 
                 {/* Header */}
                 <div className="absolute top-8 left-8">
                      <div className="text-xs font-mono text-cyan-400 mb-1">EXP_03 // UNSUPERVISED_LEARNING</div>
-                     <h1 className="text-3xl font-bold">Group the Data</h1>
+                     <h1 className="text-3xl font-bold">Group the Data ({levelIndex + 1}/{LEVELS.length})</h1>
                 </div>
 
                 <AnimatePresence mode="wait">
@@ -163,7 +232,7 @@ const GroupTheData = () => {
                     )}
 
                     {/* GAME / REVEAL */}
-                    {(step === 'drawing' || step === 'reveal') && (
+                    {(step === 'drawing' || step === 'reveal_kmeans' || step === 'reveal_dl') && (
                         <motion.div 
                             key="game"
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
@@ -191,8 +260,6 @@ const GroupTheData = () => {
                                     {/* Points */}
                                     {points.map((p, i) => {
                                         // Color logic: 
-                                        // Drawing Phase: User color
-                                        // Reveal Phase: AI color
                                         let fill = '#ffffff'
                                         let opacity = 0.5
                                         
@@ -202,30 +269,35 @@ const GroupTheData = () => {
                                             if (group === 1) fill = '#3b82f6' // Blue
                                             if (group === 2) fill = '#22c55e' // Green
                                             if (group !== undefined) opacity = 1
-                                        } else {
+                                        } else if (step === 'reveal_kmeans') {
                                             const cluster = clusters[i]
                                             if (cluster === 0) fill = '#ef4444'
                                             if (cluster === 1) fill = '#3b82f6'
                                             if (cluster === 2) fill = '#22c55e'
+                                            opacity = 1
+                                        } else if (step === 'reveal_dl') {
+                                            // Show logical Truth
+                                            if (p.trueGroup === 0) fill = '#ef4444'
+                                            if (p.trueGroup === 1) fill = '#3b82f6'
                                             opacity = 1
                                         }
 
                                         return (
                                             <motion.circle
                                                 key={p.id}
-                                                cx={p.x} cy={p.y} r={step === 'reveal' ? 3 : 2}
+                                                cx={p.x} cy={p.y} r={step.includes('reveal') ? 3 : 2}
                                                 fill={fill}
                                                 opacity={opacity}
                                                 className="cursor-pointer transition-all duration-300"
                                                 onClick={() => togglePoint(p.id)}
-                                                animate={{ scale: step === 'reveal' ? 1.5 : 1 }}
-                                                filter={step === 'reveal' ? "url(#glow)" : ""}
+                                                animate={{ scale: step.includes('reveal') ? 1.5 : 1 }}
+                                                filter={step.includes('reveal') ? "url(#glow)" : ""}
                                             />
                                         )
                                     })}
 
-                                    {/* Centroids (Reveal only) */}
-                                    {step === 'reveal' && centroids.map((c, i) => (
+                                    {/* Centroids (K-Means Reveal only) */}
+                                    {step === 'reveal_kmeans' && centroids.map((c, i) => (
                                         <motion.g key={`c-${i}`} initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5 }}>
                                             <circle cx={c.x} cy={c.y} r="8" fill="none" stroke={c.color} strokeWidth="2" strokeDasharray="4 2" className="animate-spin-slow" />
                                             <circle cx={c.x} cy={c.y} r="2" fill={c.color} />
@@ -250,12 +322,13 @@ const GroupTheData = () => {
                                     <div className="space-y-6">
                                         <div>
                                             <h3 className="text-xl font-bold mb-4">Your Intelligence</h3>
+                                            <p className="text-gray-400 mb-4">{level.description}</p>
                                             <div className="flex gap-4">
                                                 {[
                                                     { color: 'bg-red-500', name: 'Group A' },
                                                     { color: 'bg-blue-500', name: 'Group B' },
                                                     { color: 'bg-green-500', name: 'Group C' }
-                                                ].map((g, i) => (
+                                                ].slice(0, level.k).map((g, i) => (
                                                     <button
                                                         key={i}
                                                         onClick={() => setSelectedGroup(i)}
@@ -269,7 +342,7 @@ const GroupTheData = () => {
                                         </div>
 
                                         <div className="p-4 rounded-xl bg-white/5 border border-white/5 text-sm text-gray-400">
-                                            Try to find the natural clusters. There is no right answer, only structure.
+                                            Try to find the natural clusters.
                                         </div>
 
                                         <Button onClick={handleReveal} size="lg" className="w-full">
@@ -279,23 +352,38 @@ const GroupTheData = () => {
                                 ) : (
                                     <div className="space-y-6">
                                         <div>
-                                            <h3 className="text-xl font-bold mb-2 text-cyan-400">Machine Intelligence</h3>
-                                            <h1 className="text-4xl font-bold mb-4">K-Means Clustering</h1>
-                                            <p className="text-gray-300 leading-relaxed">
-                                                The algorithm identified 3 distinct centers of gravity. It didn't need to know <i>what</i> the data was—it just measured distance.
-                                            </p>
-                                        </div>
-                                        
-                                        <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-900/20 to-purple-900/20 border border-white/10">
-                                            <div className="text-xs font-mono text-cyan-400 mb-2">KEY TAKEAWAY</div>
-                                            <p className="text-lg font-light text-white italic">
-                                                "Intelligence can emerge without instructions."
-                                            </p>
+                                            <h3 className="text-xl font-bold mb-2 text-cyan-400">
+                                                {step === 'reveal_dl' ? "Deep Learning Intelligence" : "Machine Intelligence"}
+                                            </h3>
+                                            <h1 className="text-4xl font-bold mb-4">
+                                                {step === 'reveal_dl' ? "Manifold Learning" : "K-Means Clustering"}
+                                            </h1>
+                                            
+                                            {step === 'reveal_kmeans' && level.type === 'circles' ? (
+                                                <div className="p-4 bg-red-900/20 border border-red-500/30 rounded-xl">
+                                                    <p className="text-red-300 font-bold mb-2">FAILURE DETECTED</p>
+                                                    <p className="text-gray-400">
+                                                        Simple ML failed. It tried to draw straight lines through circles!
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                <p className="text-gray-300 leading-relaxed">
+                                                    {step === 'reveal_dl' 
+                                                        ? "Deep Learning warped the space to separate the rings perfectly."
+                                                        : "The algorithm identified centers of gravity."}
+                                                </p>
+                                            )}
                                         </div>
 
-                                        <Button onClick={() => navigate('/experiment/4')} size="xl" className="w-full">
-                                            Next: Context & Language → 
-                                        </Button>
+                                        {step === 'reveal_kmeans' && level.type === 'circles' ? (
+                                            <Button onClick={handleDLReveal} size="xl" className="w-full animate-pulse-glow">
+                                                Activate Deep Learning (NNs) →
+                                            </Button>
+                                        ) : (
+                                            <Button onClick={handleNext} size="xl" className="w-full">
+                                                {levelIndex < LEVELS.length - 1 ? "Next Level: Complex Data" : "Next: Context & Language →"}
+                                            </Button>
+                                        )}
                                     </div>
                                 )}
                             </div>

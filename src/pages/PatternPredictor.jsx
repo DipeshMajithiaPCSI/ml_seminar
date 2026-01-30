@@ -5,6 +5,7 @@ import confetti from 'canvas-confetti'
 import PageWrapper from '../components/layout/PageWrapper'
 import Button from '../components/ui/Button'
 import useGameStore from '../stores/gameStore'
+import GameFeedback from '../components/ui/GameFeedback'
 
 const LEVELS = [
     {
@@ -17,8 +18,7 @@ const LEVELS = [
         domain: [0, 60],
         concept: "WEIGHT",
         detailed: "In Machine Learning, a 'Weight' determines the importance of an input. Here, the input is multiplied by 2, scaling its value linearly.",
-        winGif: "https://media.giphy.com/media/nXxOjZrbnbRxS/giphy.gif",
-        lossGif: "https://media.giphy.com/media/hPPx8yk3Bmqys/giphy.gif"
+        winGif: "https://media.giphy.com/media/26u4lOMA8JKSnL9Uk/giphy.gif" // Smart guy
     },
     {
         id: 2,
@@ -30,8 +30,7 @@ const LEVELS = [
         domain: [0, 110],
         concept: "BIAS",
         detailed: "A 'Bias' allows models to shift their activation positive or negative. It ensures that even if the input is 0, the neuron can still fire (output 10).",
-        winGif: "https://media.giphy.com/media/d31w24psk1O4WCPi/giphy.gif",
-        lossGif: "https://media.giphy.com/media/11XtXZX33d9Xdm/giphy.gif"
+        winGif: "https://media.giphy.com/media/dIaM6m6MjY1dS/giphy.gif" // Math
     },
     {
         id: 3,
@@ -43,8 +42,7 @@ const LEVELS = [
         domain: [0, 15],
         concept: "LINEAR REGRESSION",
         detailed: "Combining Weight (slope) and Bias (intercept) creates a line. This is the fundamental equation of Linear Regression and a single artificial neuron: y = wx + b.",
-        winGif: "https://media.giphy.com/media/l0MYt5jPR6Lx5djqg/giphy.gif",
-        lossGif: "https://media.giphy.com/media/l41lXkx9x8OTM1rwY/giphy.gif"
+        winGif: "https://media.giphy.com/media/3o7btPCcdNniyf0ArS/giphy.gif" // Calculation
     },
     {
         id: 4,
@@ -56,8 +54,7 @@ const LEVELS = [
         domain: [0, 12],
         concept: "ACTIVATION FUNCTION",
         detailed: "Real-world data is messy and curved. Deep Learning uses 'Non-linear' functions (like ReLU or Sigmoid) to bend the lines and fit complex patterns.",
-        winGif: "https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif",
-        lossGif: "https://media.giphy.com/media/xT5LMzIK1AdZJ4cYW4/giphy.gif"
+        winGif: "https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif" // Mind blown
     }
 ]
 
@@ -123,6 +120,7 @@ const PatternPredictor = () => {
     const [userGuess, setUserGuess] = useState('')
     const [errorStatus, setErrorStatus] = useState(null)
     const inputRef = useRef(null)
+    const [showFeedback, setShowFeedback] = useState(false)
 
     const currentLevel = LEVELS[levelIndex]
     const isFinalLevel = levelIndex === LEVELS.length - 1
@@ -138,6 +136,7 @@ const PatternPredictor = () => {
         setDataIndex(0)
         setErrorStatus(null)
         setUserGuess('')
+        setShowFeedback(false)
 
         let current = 0
         const interval = setInterval(() => {
@@ -152,6 +151,7 @@ const PatternPredictor = () => {
     }
 
     const handleNextLevel = () => {
+        setShowFeedback(false)
         if (levelIndex < LEVELS.length - 1) {
             setLevelIndex(prev => prev + 1)
             setStep('intro')
@@ -175,7 +175,9 @@ const PatternPredictor = () => {
                 origin: { y: 0.7 },
                 colors: ['#06b6d4', '#a855f7']
             })
-            setTimeout(() => setStep('summary'), 1500)
+            setTimeout(() => {
+                setShowFeedback(true)
+            }, 1000)
         } else {
             setErrorStatus('wrong')
         }
@@ -184,6 +186,17 @@ const PatternPredictor = () => {
     return (
         <PageWrapper>
             <div className="min-h-screen flex flex-col items-center justify-center p-6 relative z-10">
+
+                <GameFeedback 
+                    isOpen={showFeedback}
+                    isSuccess={true}
+                    gifUrl={currentLevel.winGif}
+                    title="Pattern Decoded!"
+                    description={`You found the rule: ${currentLevel.rule}`}
+                    explanation={currentLevel.detailed}
+                    onNext={handleNextLevel}
+                    nextLabel={isFinalLevel ? "Finish Experiment" : "Next Challenge"}
+                />
 
                 {/* Header - Hidden during Reveal */}
                 {step !== 'grand_reveal' && (
@@ -289,54 +302,9 @@ const PatternPredictor = () => {
                                         </form>
                                     </div>
                                 </motion.div>
-
-                                {/* Feedback */}
-                                <div className="h-48 flex items-center justify-center">
-                                    <AnimatePresence>
-                                        {errorStatus && (
-                                            <motion.div
-                                                initial={{ opacity: 0, y: 20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0 }}
-                                                className="flex flex-col items-center gap-4"
-                                            >
-                                                <img
-                                                    src={errorStatus === 'correct' ? currentLevel.winGif : currentLevel.lossGif}
-                                                    className={`w-48 h-32 rounded-lg object-cover border-2 ${errorStatus === 'correct' ? 'border-green-500' : 'border-red-500'}`}
-                                                />
-                                                <span className={`font-bold ${errorStatus === 'correct' ? 'text-green-400' : 'text-red-400'}`}>
-                                                    {errorStatus === 'correct' ? "MATCH FOUND" : "PATTERN MISMATCH"}
-                                                </span>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </div>
                             </motion.div>
                         )}
 
-                        {/* --- PHASE 3: INTERMEDIATE SUCCESS (Suspense - NO REVEAL) --- */}
-                        {step === 'summary' && (
-                            <motion.div
-                                key="summary"
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, x: -50 }}
-                                className="text-center max-w-md mx-auto"
-                            >
-                                <div className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md mb-8">
-                                    <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-6">
-                                        <span className="text-2xl">💾</span>
-                                    </div>
-                                    <h2 className="text-2xl font-bold text-white mb-2">Data Processed</h2>
-                                    <p className="text-gray-400 text-sm">
-                                        Model parameters updated. Internal logic hidden.
-                                    </p>
-                                </div>
-                                <Button onClick={handleNextLevel} size="lg" className="w-full">
-                                    {isFinalLevel ? "Finalize Model" : "Next Dataset →"}
-                                </Button>
-                            </motion.div>
-                        )}
 
                         {/* --- PHASE 4: THE GRAND REVEAL --- */}
                         {step === 'grand_reveal' && (

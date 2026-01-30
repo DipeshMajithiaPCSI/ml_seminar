@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
@@ -5,54 +6,64 @@ import PageWrapper from '../components/layout/PageWrapper'
 import Button from '../components/ui/Button'
 import useGameStore from '../stores/gameStore'
 import confetti from 'canvas-confetti'
+import GameFeedback from '../components/ui/GameFeedback'
 
 const LEVELS = [
     {
         id: 1,
-        name: "The Offset (Bias)",
-        description: "The slope is perfect, but the line is too low. Adjust the Bias (b) to fix it.",
-        points: [{ x: 10, y: 30 }, { x: 20, y: 40 }, { x: 50, y: 70 }],
-        targetSlope: 1,
-        targetBias: 20,
-        startSlope: 1,
-        startBias: -10,
-        lockedSlope: true
+        name: "Linear Regression (ML)",
+        description: "Standard Machine Learning fits a straight line. Adjust Slope (m) and Bias (b).",
+        points: [{ x: 10, y: 30 }, { x: 30, y: 70 }, { x: 50, y: 110 }],
+        targetSlope: 2,
+        targetBias: 10,
+        targetCurvature: 0,
+        startSlope: 0.5,
+        startBias: 50,
+        startCurvature: 0,
+        lockedSlope: false,
+        lockedBias: false,
+        lockedCurvature: true, // ML can't bend
+        detailed: "This is Linear Regression. It minimizes the error by finding the best straight line. It works great for simple trends.",
+        winGif: "https://media.giphy.com/media/l3q2Z5667uYoJ2LLy/giphy.gif"
     },
     {
         id: 2,
-        name: "The Angle (Weight)",
-        description: "The starting point is fine, but the angle is wrong. Adjust the Weight (m).",
-        points: [{ x: 0, y: 10 }, { x: 20, y: 50 }, { x: 40, y: 90 }],
-        targetSlope: 2,
-        targetBias: 10,
-        startSlope: 0.5,
-        startBias: 10,
-        lockedBias: true
-    },
-    {
-        id: 3,
-        name: "The Combo",
-        description: "Everything is wrong. You need to find the perfect balance.",
-        points: [{ x: 10, y: 25 }, { x: 30, y: 65 }, { x: 50, y: 105 }],
-        targetSlope: 2,
-        targetBias: 5,
-        startSlope: 0.5,
-        startBias: 50,
+        name: "Deep Learning (Non-Linear)",
+        description: "The data is curved! A straight line can't fit this. You need to add 'Complexity'.",
+        points: [{ x: 10, y: 90 }, { x: 30, y: 30 }, { x: 50, y: 90 }], // Parabola
+        targetSlope: 0,
+        targetBias: 30,
+        targetCurvature: 0.15, // Positive curvature
+        startSlope: 0,
+        startBias: 60,
+        startCurvature: 0,
         lockedSlope: false,
-        lockedBias: false
+        lockedBias: false,
+        lockedCurvature: false, // DL power unlocked
+        detailed: "Deep Learning introduces 'Non-Linearity' (like ReLU or Sigmoid functions). This allows the model to bend and fit complex, real-world data.",
+        winGif: "https://media.giphy.com/media/26AHONTmuXD2WDV6g/giphy.gif"
     }
 ]
 
 // Interactive Graph Component
-const InteractiveGraph = ({ points, slope, bias }) => {
+const InteractiveGraph = ({ points, slope, bias, curvature }) => {
     const minX = 0, maxX = 60
     const width = 100, height = 100
 
     const scaleX = (x) => (x / maxX) * width
     const scaleY = (y) => height - (y / 120) * height
 
-    const x1 = minX, x2 = maxX
-    const y1 = slope * x1 + bias, y2 = slope * x2 + bias
+    // Generate path for the curve/line
+    const generatePath = () => {
+        let d = `M ${scaleX(0)} ${scaleY(bias + curvature * Math.pow(0 - 30, 2))}`
+        for(let x=1; x<=60; x++) {
+            // y = mx + b + c*(x-center)^2
+            // We center the curve at x=30 for intuitive control
+            const y = slope * x + bias + curvature * Math.pow(x - 30, 2)
+            d += ` L ${scaleX(x)} ${scaleY(y)}`
+        }
+        return d
+    }
 
     return (
         <div className="w-full h-80 bg-black/40 rounded-xl border border-white/10 relative overflow-hidden select-none">
@@ -67,7 +78,7 @@ const InteractiveGraph = ({ points, slope, bias }) => {
                 <line x1="0" y1="0" x2="0" y2="100" stroke="white" strokeOpacity="0.2" strokeWidth="1" />
 
                 {points.map((p, i) => {
-                    const predictedY = slope * p.x + bias
+                    const predictedY = slope * p.x + bias + curvature * Math.pow(p.x - 30, 2)
                     return (
                         <line
                             key={`err-${i}`}
@@ -78,9 +89,9 @@ const InteractiveGraph = ({ points, slope, bias }) => {
                     )
                 })}
 
-                <line
-                    x1={scaleX(x1)} y1={scaleY(y1)}
-                    x2={scaleX(x2)} y2={scaleY(y2)}
+                <path
+                    d={generatePath()}
+                    fill="none"
                     stroke="#06b6d4" strokeWidth="2"
                     className="drop-shadow-[0_0_8px_rgba(6,182,212,0.5)]"
                 />
@@ -93,7 +104,7 @@ const InteractiveGraph = ({ points, slope, bias }) => {
                 ))}
             </svg>
             <div className="absolute top-4 right-4 text-xs font-mono text-cyan-500">
-                y = {slope.toFixed(2)}x + {bias.toFixed(1)}
+                Error: {points.reduce((acc, p) => acc + Math.abs((slope * p.x + bias + curvature * Math.pow(p.x - 30, 2)) - p.y), 0).toFixed(1)}
             </div>
         </div>
     )
@@ -107,8 +118,10 @@ const FixTheModel = () => {
     const [step, setStep] = useState('game') // 'game' | 'reveal'
     const [slope, setSlope] = useState(1)
     const [bias, setBias] = useState(0)
+    const [curvature, setCurvature] = useState(0)
     const [error, setError] = useState(100)
     const [isWin, setIsWin] = useState(false)
+    const [showFeedback, setShowFeedback] = useState(false)
 
     const level = LEVELS[levelIndex]
 
@@ -117,7 +130,9 @@ const FixTheModel = () => {
         if (step === 'game') {
             setSlope(level.startSlope)
             setBias(level.startBias)
+            setCurvature(level.startCurvature)
             setIsWin(false)
+            setShowFeedback(false)
         }
     }, [levelIndex, step])
 
@@ -125,13 +140,13 @@ const FixTheModel = () => {
     useEffect(() => {
         let totalError = 0
         level.points.forEach(p => {
-            const prediction = slope * p.x + bias
+            const prediction = slope * p.x + bias + curvature * Math.pow(p.x - 30, 2)
             totalError += Math.abs(prediction - p.y)
         })
         const avgError = totalError / level.points.length
         setError(avgError)
 
-        if (avgError < 2.0 && !isWin) {
+        if (avgError < 5.0 && !isWin) { // Eased threshold for curve
             setIsWin(true)
             confetti({
                 particleCount: 50,
@@ -139,12 +154,16 @@ const FixTheModel = () => {
                 origin: { y: 0.7 },
                 colors: ['#06b6d4', '#a855f7']
             })
-        } else if (avgError >= 2.0 && isWin) {
+            setTimeout(() => {
+                setShowFeedback(true)
+            }, 500)
+        } else if (avgError >= 5.0 && isWin) {
             setIsWin(false)
         }
-    }, [slope, bias, level])
+    }, [slope, bias, curvature, level])
 
     const handleNext = () => {
+        setShowFeedback(false)
         if (levelIndex < LEVELS.length - 1) {
             setLevelIndex(prev => prev + 1)
         } else {
@@ -156,6 +175,17 @@ const FixTheModel = () => {
 
     return (
         <PageWrapper>
+            <GameFeedback 
+                isOpen={showFeedback}
+                isSuccess={true}
+                gifUrl={level.winGif}
+                title="Pattern Matched!"
+                description="You minimized the Loss."
+                explanation={level.detailed}
+                onNext={handleNext}
+                nextLabel={levelIndex === LEVELS.length - 1 ? "See the Big Picture" : "Next Parameter"}
+            />
+
             <AnimatePresence mode="wait">
                 {step === 'game' ? (
                     <motion.div
@@ -177,14 +207,14 @@ const FixTheModel = () => {
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full">
                             <div className="lg:col-span-2">
-                                <InteractiveGraph points={level.points} slope={slope} bias={bias} />
+                                <InteractiveGraph points={level.points} slope={slope} bias={bias} curvature={curvature} />
                             </div>
 
                             <div className="flex flex-col gap-6 p-6 bg-white/5 rounded-2xl border border-white/10">
                                 <div>
                                     <div className="flex justify-between mb-2">
                                         <span className="text-xs font-mono text-gray-400">TOTAL ERROR (LOSS)</span>
-                                        <span className={`text-xl font-mono font-bold ${error < 2 ? 'text-green-400' : 'text-red-400'}`}>
+                                        <span className={`text-xl font-mono font-bold ${error < 5 ? 'text-green-400' : 'text-red-400'}`}>
                                             {error.toFixed(2)}
                                         </span>
                                     </div>
@@ -193,7 +223,7 @@ const FixTheModel = () => {
                                             initial={{ width: '100%' }}
                                             animate={{
                                                 width: `${Math.min(error * 4, 100)}%`,
-                                                backgroundColor: error < 2 ? '#4ade80' : '#ef4444'
+                                                backgroundColor: error < 5 ? '#4ade80' : '#ef4444'
                                             }}
                                             className="h-full transition-all duration-300"
                                         />
@@ -209,7 +239,7 @@ const FixTheModel = () => {
                                             <span className="font-mono">{slope.toFixed(2)}</span>
                                         </div>
                                         <input
-                                            type="range" min="0" max="4" step="0.1" value={slope}
+                                            type="range" min="-2" max="2" step="0.1" value={slope}
                                             onChange={(e) => setSlope(parseFloat(e.target.value))}
                                             className="w-full accent-cyan-500 bg-gray-800 h-2 rounded-lg appearance-none cursor-pointer"
                                         />
@@ -221,10 +251,25 @@ const FixTheModel = () => {
                                             <span className="font-mono">{bias.toFixed(1)}</span>
                                         </div>
                                         <input
-                                            type="range" min="-50" max="50" step="1" value={bias}
+                                            type="range" min="0" max="100" step="1" value={bias}
                                             onChange={(e) => setBias(parseFloat(e.target.value))}
                                             className="w-full accent-purple-500 bg-gray-800 h-2 rounded-lg appearance-none cursor-pointer"
                                         />
+                                    </div>
+
+                                    <div className={level.lockedCurvature ? 'opacity-30 pointer-events-none grayscale' : ''}>
+                                        <div className="flex justify-between mb-2">
+                                            <label className="text-sm font-bold text-yellow-400">Complexity (Non-Linearity)</label>
+                                            <span className="font-mono">{curvature.toFixed(2)}</span>
+                                        </div>
+                                        <input
+                                            type="range" min="-0.2" max="0.2" step="0.01" value={curvature}
+                                            onChange={(e) => setCurvature(parseFloat(e.target.value))}
+                                            className="w-full accent-yellow-500 bg-gray-800 h-2 rounded-lg appearance-none cursor-pointer"
+                                        />
+                                        {level.lockedCurvature && (
+                                            <div className="text-xs text-red-400 mt-1">Locked (Need Deep Learning)</div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -235,6 +280,11 @@ const FixTheModel = () => {
                                     >
                                         {levelIndex === LEVELS.length - 1 ? 'Analyze Results' : 'Next Level'}
                                     </Button>
+                                    {!isWin && levelIndex === 1 && error > 10 && (
+                                        <div className="text-xs text-center mt-2 text-yellow-400/60 animate-pulse">
+                                            Tip: Try bending the line with Complexity!
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -306,3 +356,4 @@ const FixTheModel = () => {
 }
 
 export default FixTheModel
+
