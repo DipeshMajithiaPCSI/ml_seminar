@@ -1,9 +1,12 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import ParticleBackground from '../ui/ParticleBackground'
+import Navigation from '../ui/Navigation'
 
 const PageWrapper = ({ children, className = '' }) => {
     return (
         <>
+            <Navigation />
+            
             {/* Background Layer (reusing the one from LandingPage concept or standard) */}
             <div className="fixed inset-0 z-0 bg-black">
                 <div className="absolute inset-0 bg-mesh opacity-50" />
