@@ -1,0 +1,23 @@
+# SPEAKER NOTES: 06_Game5_Context_Switch.txt
+
+## 🎤 Hook
+"One word can mean two completely different things based on who is saying it."
+
+## 🧠 Concept Explanation: Context & Values (Vectors)
+- **Token**: A word (e.g., "Apple").
+- **Embedding**: The meaning of that word.
+- **Context Switch**: Changing the meaning based on surroundings (e.g., "Apple" the fruit vs "Apple" the tech company).
+
+## 🎢 Fun Analogy: "Bank"
+"If I say 'I am going to the **bank**'... where am I going?
+- If I have a fishing rod? -> River Bank.
+- If I have a checkbook? -> Money Bank.
+- The word is the same. The *Context* changes the destination."
+
+## 🤓 Fun Fact
+"Modern LLMs track thousands of context dimensions. They know that 'Jaguar' means a car in a sentence about speed, but a cat in a sentence about the jungle, instantly."
+
+## 📜 Script / Key Talking Points
+- "We have the word 'Play'."
+- "Toggle the Context Switch involved: 'Music' vs 'Sports'."
+- "Watch the values change! The AI is literally changing its mind about what the word means."

@@ -1,0 +1,27 @@
+# SPEAKER NOTES: 03_Game2_Fix_The_Model.txt
+
+## 🎤 Hook
+"Okay, the AI is broken. It thinks a Pizza costs $500. Let's fix it."
+
+## 🧠 Concept Explanation: Gradient Descent & Loss
+Here we introduce **Training**.
+- **Error (Loss)**: Distinct between the prediction (Red Point) and reality (Green Point).
+- **Sliders (Weights/Bias)**: The knobs we turn to reduce the error.
+- **The Goal**: Minimize the distance.
+
+## 🎢 Fun Analogy: The Lost Hiker (Gradient Descent)
+"Imagine you are lost on a mountain at night (High Error). You want to get to the village in the valley (Low Error).
+- You can't see the whole map.
+- You can only feel the slope under your feet.
+- If it goes down, you take a step.
+- That's **Gradient Descent**. Taking small steps downhill until you reach the bottom (Zero Error)."
+
+## 🤓 Fun Fact
+"In massive models like GPT-4, they aren't tuning 2 sliders. They are tuning **1.7 Trillion** sliders simultaneously. And they are doing it blindly, just feeling the slope!"
+
+## 📜 Script / Key Talking Points
+- "Look at the red line. It's terrible. The error is huge."
+- "Move the 'Weight' slider. See the line rotate? That's the slope."
+- "Move the 'Bias' slider. See the line move up/down? That's the intercept."
+- "Your job is to make the Error go to zero. Go!"
+- "When you succeed, realize this: You just performed 'Backpropagation' manually."

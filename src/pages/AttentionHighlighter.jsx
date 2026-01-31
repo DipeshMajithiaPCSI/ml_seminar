@@ -14,9 +14,9 @@ const LEVELS = [
         words: ["The", "animal", "didn't", "cross", "the", "street", "because", "it", "was", "too", "tired."],
         sourceIndex: 7, // it
         correctTargetIndex: 1, // animal
-        distractorIndex: 5, // street
-        explanation: "Because it was 'tired', 'it' must be the Animal. Streets don't get tired.",
-        winGif: "https://media.giphy.com/media/26AHONTmuXD2WDV6g/giphy.gif"
+        distractors: [5, 10], // street, tired
+        explanation: "Great job! By giving more weight to 'Animal', the model understands that 'Tired' usually applies to living things, not streets.",
+        winGif: "https://media.tenor.com/bNVdnCOu_kYAAAAM/happy-dance.gif"
     },
     {
         id: 2,
@@ -24,9 +24,9 @@ const LEVELS = [
         words: ["The", "animal", "didn't", "cross", "the", "street", "because", "it", "was", "too", "wide."],
         sourceIndex: 7, // it
         correctTargetIndex: 5, // street
-        distractorIndex: 1, // animal
-        explanation: "Because it was 'wide', 'it' refers to the Street. Animals aren't typically described as 'wide' in this context.",
-        winGif: "https://media.giphy.com/media/l0MYt5jPR6tTcPtq8/giphy.gif"
+        distractors: [1, 10], // animal, wide
+        explanation: "Correct! 'Wide' connects better to 'Street' than 'Animal'. You just trained the model to understand context!",
+        winGif: "https://media.tenor.com/8ST06-zWW9YAAAAM/dancing-so.gif"
     },
     {
         id: 3,
@@ -34,83 +34,108 @@ const LEVELS = [
         words: ["The", "trophy", "didn't", "fit", "in", "the", "suitcase", "because", "it", "was", "too", "big."],
         sourceIndex: 8, // it
         correctTargetIndex: 1, // trophy
-        distractorIndex: 6, // suitcase
-        explanation: "If valid logic holds, for something to not fit, the object (Trophy) must be big.",
-        winGif: "https://media.giphy.com/media/3o7qDSOvfaCO9b3MlO/giphy.gif"
+        distractors: [6, 11], // suitcase, big
+        explanation: "Exactly! If it didn't fit, the 'object' (Trophy) must be the big thing.",
+        winGif: "https://media.tenor.com/Cw_mf8ScHLcAAAA1/funny.webp"
     }
 ]
 
 const AttentionHighlighter = () => {
     const navigate = useNavigate()
     const { completeExperiment, setScore } = useGameStore()
-    
+
     const [levelIndex, setLevelIndex] = useState(0)
-    const [step, setStep] = useState('connect') // 'connect' | 'success' | 'fail'
-    const [connection, setConnection] = useState(null) // { from: index, to: index }
+    const [step, setStep] = useState('intro') // 'intro' | 'train' | 'success' | 'fail' | 'explanation'
+    const [weights, setWeights] = useState({}) // { wordIndex: 0-100 }
     const [showFeedback, setShowFeedback] = useState(false)
-    const [wordRefs, setWordRefs] = useState({}) 
-    
+    const [wordRefs, setWordRefs] = useState({})
+
     // For drawing lines
     const containerRef = useRef(null)
-    const [svgPath, setSvgPath] = useState("")
+    const [lines, setLines] = useState([]) // Array of calculated SVG paths
 
     const level = LEVELS[levelIndex]
-    
-    // Reset on level change
+
+    // Reset weights on level change
     useEffect(() => {
-        setStep('connect')
-        setConnection(null)
-        setSvgPath("")
+        setStep('intro')
+        const initialWeights = {}
+        // Initialize distractors and correct target with random or zero weights
+        level.words.forEach((_, i) => {
+            if (i === level.correctTargetIndex || level.distractors.includes(i)) {
+                initialWeights[i] = 30 // Start with equal low weights
+            }
+        })
+        setWeights(initialWeights)
         setShowFeedback(false)
     }, [levelIndex])
 
-    // Update SVG line when connection changes
+    // Update lines based on weights
     useEffect(() => {
-        if (connection && wordRefs[connection.from] && wordRefs[connection.to] && containerRef.current) {
-            const containerRect = containerRef.current.getBoundingClientRect()
-            const fromRect = wordRefs[connection.from].getBoundingClientRect()
-            const toRect = wordRefs[connection.to].getBoundingClientRect()
-            
-            // Calculate relative coordinates
-            const x1 = fromRect.left + fromRect.width / 2 - containerRect.left
-            const y1 = fromRect.top + fromRect.height / 2 - containerRect.top
-            const x2 = toRect.left + toRect.width / 2 - containerRect.left
-            const y2 = toRect.top + toRect.height / 2 - containerRect.top
+        if (!containerRef.current) return
 
-            // Draw a nice curved bezier
-            const cx = (x1 + x2) / 2
-            const cy = Math.min(y1, y2) - 80 // Control point above text
-            
-            setSvgPath(`M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`)
-        } else {
-            setSvgPath("")
-        }
-    }, [connection, wordRefs, levelIndex])
+        const newLines = []
+        const containerRect = containerRef.current.getBoundingClientRect()
+        const sourceEl = wordRefs[level.sourceIndex]
 
-    const handleWordClick = (index) => {
-        if (step !== 'connect') return
-        if (index === level.sourceIndex) return // Can't connect to itself
+        if (!sourceEl) return
 
-        // Must connect source to something
-        setConnection({ from: level.sourceIndex, to: index })
-        
-        if (index === level.correctTargetIndex) {
+        const sourceRect = sourceEl.getBoundingClientRect()
+        const x1 = sourceRect.left + sourceRect.width / 2 - containerRect.left
+        const y1 = sourceRect.top + sourceRect.height / 2 - containerRect.top
+
+        Object.keys(weights).forEach(targetIdx => {
+            const targetEl = wordRefs[targetIdx]
+            if (targetEl) {
+                const targetRect = targetEl.getBoundingClientRect()
+                const x2 = targetRect.left + targetRect.width / 2 - containerRect.left
+                const y2 = targetRect.top + targetRect.height / 2 - containerRect.top
+
+                // Curve logic
+                const cx = (x1 + x2) / 2
+                const cy = Math.min(y1, y2) - 50 - (weights[targetIdx] || 0) // Curve goes higher with weight? Or stay fixed?
+
+                newLines.push({
+                    path: `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`,
+                    weight: weights[targetIdx],
+                    color: weights[targetIdx] > 50 ? '#22d3ee' : '#94a3b8' // Cyan if high, Gray if low
+                })
+            }
+        })
+        setLines(newLines)
+    }, [weights, wordRefs, levelIndex])
+
+    const handleWeightChange = (index, val) => {
+        setWeights(prev => ({ ...prev, [index]: parseInt(val) }))
+    }
+
+    const handleRunTraining = () => {
+        // Check if correct index has the HIGHEST weight
+        const correctWeight = weights[level.correctTargetIndex] || 0
+        let maxWeight = 0
+        let maxIndex = -1
+
+        Object.keys(weights).forEach(key => {
+            if (weights[key] > maxWeight) {
+                maxWeight = weights[key]
+                maxIndex = parseInt(key)
+            }
+        })
+
+        if (maxIndex === level.correctTargetIndex && correctWeight > 50) {
             setStep('success')
             confetti({
-                particleCount: 50,
-                spread: 60,
+                particleCount: 100,
+                spread: 70,
                 origin: { y: 0.6 }
             })
             setTimeout(() => {
                 setShowFeedback(true)
             }, 1000)
         } else {
-            // Wrong target
+            console.log("Fail: Max", maxIndex, "Correct", level.correctTargetIndex)
             setStep('fail')
-            setTimeout(() => {
-                setStep('connect')
-                setConnection(null)
-            }, 1500)
+            setTimeout(() => setStep('train'), 2000)
         }
     }
 
@@ -119,112 +144,167 @@ const AttentionHighlighter = () => {
         if (levelIndex < LEVELS.length - 1) {
             setLevelIndex(prev => prev + 1)
         } else {
-            completeExperiment('attention')
-            setScore('attention', 100)
-            navigate('/experiment/6')
+            setStep('explanation')
         }
     }
 
+    const handleFinish = () => {
+        completeExperiment('attention')
+        setScore('attention', 100)
+        navigate('/experiment/6')
+    }
+
     const registerRef = (index, el) => {
-        if(el) { // Only set if not null
-             // We need to mutate the state or object without triggering re-renders loop
-             // Using a temp object isn't reactive, but using the callback ref is standard
-             wordRefs[index] = el
+        if (el) {
+            wordRefs[index] = el
         }
     }
 
     return (
         <PageWrapper>
-            <GameFeedback 
+            <GameFeedback
                 isOpen={showFeedback}
                 isSuccess={true}
                 gifUrl={level.winGif}
-                title="Attention Connected"
-                description="You solved the reference."
+                title="Weights Optimized!"
+                description="The model now knows where to look."
                 explanation={level.explanation}
                 onNext={handleNext}
-                nextLabel={levelIndex < LEVELS.length - 1 ? "Next Challenge" : "Next: Generative AI (Diffusion)"}
+                nextLabel={levelIndex < LEVELS.length - 1 ? "Next Training Set" : "See How It Works"}
             />
 
             <div className="min-h-screen flex flex-col items-center justify-center p-6 text-white max-w-6xl mx-auto">
                 <div className="absolute top-8 left-8">
-                     <div className="text-xs font-mono text-cyan-400 mb-1">EXP_05 // SELF_ATTENTION</div>
-                     <h1 className="text-3xl font-bold">Attention Mechanism</h1>
+                    <div className="text-xs font-mono text-cyan-400 mb-1">EXP_05 // TRAINER_MODE</div>
+                    <h1 className="text-3xl font-bold">Attention Trainer</h1>
                 </div>
 
-                <div className="max-w-4xl w-full text-center relative">
-                    <h2 className="text-2xl mb-16 text-gray-300">
-                        Connect the word <span className="text-yellow-400 font-bold border-b-2 border-yellow-400">"it"</span> to what it refers to.
-                    </h2>
+                <AnimatePresence mode="wait">
+                    {step !== 'explanation' ? (
+                        <motion.div
+                            key="game"
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            className="max-w-4xl w-full text-center relative"
+                        >
+                            <h2 className="text-2xl mb-8 text-gray-300">
+                                Train the model to understand: <br /> Where should <span className="text-yellow-400 font-bold">"it"</span> look?
+                            </h2>
 
-                    <div 
-                        ref={containerRef}
-                        className="relative bg-white/5 border border-white/10 p-12 rounded-3xl flex flex-wrap justify-center gap-x-4 gap-y-8 leading-loose z-10"
-                    >
-                         {/* SVG Overlay for Line */}
-                         <svg className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-visible">
-                            <AnimatePresence>
-                                {step !== 'connect' && svgPath && (
-                                    <motion.path
-                                        initial={{ pathLength: 0, opacity: 0 }}
-                                        animate={{ pathLength: 1, opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        d={svgPath}
-                                        fill="none"
-                                        stroke={step === 'success' ? '#22c55e' : '#ef4444'}
-                                        strokeWidth="4"
-                                        strokeLinecap="round"
-                                        className="drop-shadow-lg"
-                                    />
-                                )}
-                            </AnimatePresence>
-                         </svg>
+                            {step === 'intro' && (
+                                <motion.div className="mb-8">
+                                    <Button onClick={() => setStep('train')} className="animate-pulse">Start Training Iteration</Button>
+                                </motion.div>
+                            )}
 
-                        {level.words.map((word, i) => {
-                            const isSource = i === level.sourceIndex
-                            const isSelected = connection?.to === i
-                            const isCorrect = i === level.correctTargetIndex
-
-                            // Interactive styling
-                            let styleClass = "hover:bg-white/10"
-                            if (isSource) styleClass = "border-b-4 border-yellow-400 text-yellow-100 font-bold cursor-default"
-                            else if (isSelected) {
-                                styleClass = step === 'success' 
-                                    ? "bg-green-500/20 text-green-200 border border-green-500/50" 
-                                    : "bg-red-500/20 text-red-200 border border-red-500/50"
-                            }
-                            
-                            return (
-                                <span
-                                    key={i}
-                                    ref={(el) => registerRef(i, el)}
-                                    // Only clickable if not source and we are in connect mode
-                                    onClick={() => !isSource && handleWordClick(i)}
-                                    className={`
-                                        relative px-4 py-2 rounded-xl text-3xl md:text-5xl font-serif transition-all duration-200 select-none z-10
-                                        ${!isSource ? 'cursor-pointer active:scale-95' : ''}
-                                        ${styleClass}
-                                    `}
-                                >
-                                    {word}
-                                    {isSource && (
-                                        <motion.div 
-                                            animate={{ scale: [1, 1.2, 1] }} 
-                                            transition={{ repeat: Infinity, duration: 2 }}
-                                            className="absolute -top-3 left-1/2 -translate-x-1/2 w-2 h-2 bg-yellow-400 rounded-full"
+                            <div
+                                ref={containerRef}
+                                className="relative bg-white/5 border border-white/10 p-12 rounded-3xl flex flex-wrap justify-center gap-x-4 gap-y-20 leading-loose z-10 min-h-[400px]"
+                            >
+                                {/* SVG Overlay */}
+                                <svg className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-visible">
+                                    {lines.map((line, i) => (
+                                        <motion.path
+                                            key={i}
+                                            d={line.path}
+                                            fill="none"
+                                            stroke={line.color}
+                                            strokeWidth={Math.max(2, line.weight / 10)} // Dynamic width
+                                            strokeOpacity={Math.max(0.2, line.weight / 100)}
+                                            strokeLinecap="round"
+                                            animate={{ d: line.path }}
                                         />
-                                    )}
-                                </span>
-                            )
-                        })}
-                    </div>
-                    
-                    {step === 'fail' && (
-                        <motion.div initial={{opacity:0}} animate={{opacity:1}} className="mt-8 text-red-400 font-bold text-xl">
-                            Incorrect. Read the sentence again logicially.
+                                    ))}
+                                </svg>
+
+                                {level.words.map((word, i) => {
+                                    const isSource = i === level.sourceIndex
+                                    const isTarget = weights[i] !== undefined
+
+                                    return (
+                                        <div key={i} className="relative flex flex-col items-center group">
+                                            <span
+                                                ref={(el) => registerRef(i, el)}
+                                                className={`
+                                                    relative px-4 py-2 rounded-xl text-3xl md:text-5xl font-serif transition-all duration-200 select-none z-10
+                                                    ${isSource ? 'border-b-4 border-yellow-400 text-yellow-100 font-bold' : ''}
+                                                    ${isTarget ? 'text-white' : 'opacity-50'}
+                                                `}
+                                            >
+                                                {word}
+                                            </span>
+
+                                            {/* Sliders for Targets */}
+                                            {isTarget && step === 'train' && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: -10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    className="absolute top-16 w-32 bg-black/80 p-2 rounded-lg border border-white/20 z-20"
+                                                >
+                                                    <div className="text-xs text-gray-400 mb-1">Attention Weight</div>
+                                                    <input
+                                                        type="range" min="0" max="100"
+                                                        value={weights[i]}
+                                                        onChange={(e) => handleWeightChange(i, e.target.value)}
+                                                        className="w-full accent-cyan-400 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                                                    />
+                                                    <div className="text-right text-cyan-400 font-mono text-xs mt-1">{weights[i]}%</div>
+                                                </motion.div>
+                                            )}
+                                        </div>
+                                    )
+                                })}
+                            </div>
+
+                            {/* Controls */}
+                            {step === 'train' && (
+                                <div className="mt-12 flex justify-center items-center gap-8">
+                                    <div className="text-left text-sm text-gray-400 max-w-xs">
+                                        <p>💡 Hint: Increase the slider for the word that "it" refers to. Decrease others.</p>
+                                    </div>
+                                    <Button onClick={handleRunTraining} size="xl" className="shadow-lg shadow-cyan-500/20">
+                                        RUN FORWARD PASS ▶
+                                    </Button>
+                                </div>
+                            )}
+
+                            {step === 'fail' && (
+                                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mt-8 p-4 bg-red-900/50 border border-red-500 rounded-xl text-red-200">
+                                    <p className="font-bold text-xl">High Logic Loss Detected! 📉</p>
+                                    <p>The model is paying too much attention to the wrong word. Adjust the weights!</p>
+                                </motion.div>
+                            )}
+
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="explanation"
+                            initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+                            className="max-w-5xl w-full text-center space-y-12"
+                        >
+                            <h2 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-red-500">
+                                Training Complete!
+                            </h2>
+
+                            <div className="p-8 bg-white/5 rounded-3xl border border-white/10 text-xl leading-relaxed text-gray-300">
+                                <p className="mb-6">
+                                    You just acted as the <span className="text-cyan-400 font-bold">Optimizer</span>.
+                                </p>
+                                <p className="mb-6">
+                                    In real AI training, we don't manually set sliders. We give the model millions of sentences, and <span className="text-purple-400 font-bold">Gradient Descent</span> automatically nudges these weights up or down until the "Loss" is zero.
+                                </p>
+                                <p>
+                                    The result? A model that "pays attention" to the right words.
+                                </p>
+                            </div>
+
+                            <div className="pt-8">
+                                <Button onClick={handleFinish} size="xl" className="shadow-2xl shadow-yellow-500/20">
+                                    Next: Generative AI (Diffusion) →
+                                </Button>
+                            </div>
                         </motion.div>
                     )}
-                </div>
+                </AnimatePresence>
             </div>
         </PageWrapper>
     )

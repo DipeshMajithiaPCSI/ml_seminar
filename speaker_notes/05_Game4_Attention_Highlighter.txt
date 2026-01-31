@@ -1,0 +1,23 @@
+# SPEAKER NOTES: 05_Game4_Attention_Highlighter.txt
+
+## 🎤 Hook
+"You don't read every word in a book. You skim. AI used to be bad at skimming."
+
+## 🧠 Concept Explanation: Attention Mechanism
+- **Old Way (RNNs)**: Reading word by word by word. Forgetting the beginning by the time you reach the end.
+- **New Way (Transformers)**: Looking at the *whole page* at once and shining a spotlight on what matters.
+
+## 🎢 Fun Analogy: The Cocktail Party Effect
+"Imagine you are at a noisy party. 100 people are talking.
+- You don't listen to everyone.
+- You filter out the noise and 'attend' only to the person saying your name or sharing gossip.
+- That filter is the **Attention Mechanism**."
+
+## 🤓 Fun Fact
+"The paper that invented this changed the world overnight. It was titled simply: 'Attention Is All You Need'. It is the reason ChatGPT exists today."
+
+## 📜 Script / Key Talking Points
+- "Look at the blurred text."
+- "Hover your mouse. See how it clears up?"
+- "See how keywords light up? That is the AI deciding 'This word is important'."
+- "Without attention, AI is like a student who memorizes the textbook but understands nothing."

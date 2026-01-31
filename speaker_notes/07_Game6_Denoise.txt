@@ -1,0 +1,22 @@
+# SPEAKER NOTES: 07_Game6_Denoise.txt
+
+## 🎤 Hook
+"How does AI create art? It doesn't paint. It sculpts from chaos."
+
+## 🧠 Concept Explanation: Diffusion
+- **Forward Process**: Taking a clear image and slowly destroying it with static (Noise) until it is unrecognizable.
+- **Reverse Process (Generation)**: Taking pure static and asking "What *could* this be?" and slowly cleaning it up.
+
+## 🎢 Fun Analogy: Cloud Watching (Pareidolia)
+"You look at a fluffy cloud (Random Noise).
+- You think: 'That looks like a bunny!'
+- Your brain fills in the details (Ears, Tail).
+- Diffusion AI does exactly that. It stares at TV static and hallucinates a masterpiece."
+
+## 🤓 Fun Fact
+"Stable Diffusion was trained on 2 billion images. It has seen more art than every human who completely ever lived, combined."
+
+## 📜 Script / Key Talking Points
+- "Move the slider. See the image turn to static?"
+- "Now verify the 'De-noise' button."
+- "Watch it emerge from the fog. It isn't copying an image; it is *dreaming* it."

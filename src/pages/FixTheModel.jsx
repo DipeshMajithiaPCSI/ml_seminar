@@ -24,7 +24,7 @@ const LEVELS = [
         lockedBias: false,
         lockedCurvature: true, // ML can't bend
         detailed: "This is Linear Regression. It minimizes the error by finding the best straight line. It works great for simple trends.",
-        winGif: "https://media.giphy.com/media/l3q2Z5667uYoJ2LLy/giphy.gif"
+        winGif: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZXNidXlqbzFvc2lwemMyOXRlanVuZHg3a21kd3BmdDJyeGFja2g5YiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/cXblnKXr2BQOaYnTni/giphy.gif"
     },
     {
         id: 2,
@@ -41,7 +41,7 @@ const LEVELS = [
         lockedBias: false,
         lockedCurvature: false, // DL power unlocked
         detailed: "Deep Learning introduces 'Non-Linearity' (like ReLU or Sigmoid functions). This allows the model to bend and fit complex, real-world data.",
-        winGif: "https://media.giphy.com/media/26AHONTmuXD2WDV6g/giphy.gif"
+        winGif: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZXNidXlqbzFvc2lwemMyOXRlanVuZHg3a21kd3BmdDJyeGFja2g5YiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/fUQ4rhUZJYiQsas6WD/giphy.gif"
     }
 ]
 
@@ -56,7 +56,7 @@ const InteractiveGraph = ({ points, slope, bias, curvature }) => {
     // Generate path for the curve/line
     const generatePath = () => {
         let d = `M ${scaleX(0)} ${scaleY(bias + curvature * Math.pow(0 - 30, 2))}`
-        for(let x=1; x<=60; x++) {
+        for (let x = 1; x <= 60; x++) {
             // y = mx + b + c*(x-center)^2
             // We center the curve at x=30 for intuitive control
             const y = slope * x + bias + curvature * Math.pow(x - 30, 2)
@@ -175,7 +175,7 @@ const FixTheModel = () => {
 
     return (
         <PageWrapper>
-            <GameFeedback 
+            <GameFeedback
                 isOpen={showFeedback}
                 isSuccess={true}
                 gifUrl={level.winGif}
@@ -340,6 +340,30 @@ const FixTheModel = () => {
                             </motion.div>
                         </div>
 
+
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
+                            className="mt-12 p-8 bg-gradient-to-br from-green-900/20 to-cyan-900/20 rounded-3xl border border-white/10 max-w-4xl mx-auto text-left relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 right-0 p-8 opacity-10 text-9xl">🏔️</div>
+                            <h3 className="text-2xl font-bold text-green-400 mb-4">Analogy: The Blindfolded Hiker</h3>
+                            <div className="flex flex-col md:flex-row gap-8 items-center">
+                                <div className="flex-1 space-y-4 text-gray-300">
+                                    <p>
+                                        Imagine you're lost on a mountain at night (High Error). You need to get to the bottom of the valley (Zero Error).
+                                    </p>
+                                    <ul className="space-y-2 text-sm">
+                                        <li>👣 <b>Gradient:</b> Feeling the slope with your feet to decide which way is "down".</li>
+                                        <li>🏃 <b>Learning Rate:</b> How big of a step you take. Too small? Takes forever. Too big? You trip over the valley!</li>
+                                    </ul>
+                                </div>
+                                <div className="flex-1 p-4 bg-black/30 rounded-xl border border-white/5 text-center italic text-gray-400 text-sm">
+                                    "Training a model is just sliding down an error mountain until you hit the bottom."
+                                </div>
+                            </div>
+                        </motion.div>
+
                         <motion.div
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }}
                             className="mt-16"
@@ -351,7 +375,7 @@ const FixTheModel = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </PageWrapper>
+        </PageWrapper >
     )
 }
 

@@ -1,0 +1,19 @@
+# SPEAKER NOTES: 01_Index_Intro.txt
+
+## 🎤 Hook (Opening Line)
+"Welcome to the Black Box! Today, we’re not just learning AI—we’re going to open its brain and poke around."
+
+## 🧠 Concept Explanation
+This is the starting point. The goal is to demystify "Artificial Intelligence" immediately. It's not magic; it's math. But we don't want to say "math" yet because that scares people. We say "Patterns".
+
+## 🎢 Fun Analogy
+"Think of an AI model like a very eager puppy. You verify if it did good or bad, and over time, it stops peeing on the carpet (making errors)."
+
+## 🤓 Fun Fact
+"Did you know the first 'neural network' was built in 1958? It was called the Perceptron and the New York Times said it would eventually be able to walk, talk, see, write, reproduce itself and be conscious of its existence. It took... a while."
+
+## 📜 Script / Key Talking Points
+- "Hi everyone! Open this website on your phones."
+- "You see 7 locked levels. We are going to unlock them one by one."
+- "Level 1 is about the fundamental unit of intelligence: The Pattern."
+- "Let's click 'Start Journey' and see if you are smarter than a single neuron."

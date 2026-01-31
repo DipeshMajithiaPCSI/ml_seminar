@@ -30,7 +30,7 @@ const LEVELS = [
         domain: [0, 110],
         concept: "BIAS",
         detailed: "A 'Bias' allows models to shift their activation positive or negative. It ensures that even if the input is 0, the neuron can still fire (output 10).",
-        winGif: "https://media.giphy.com/media/dIaM6m6MjY1dS/giphy.gif" // Math
+        winGif: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZXNidXlqbzFvc2lwemMyOXRlanVuZHg3a21kd3BmdDJyeGFja2g5YiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/31lPv5L3aIvTi/giphy.gif" // Math
     },
     {
         id: 3,
@@ -55,6 +55,28 @@ const LEVELS = [
         concept: "ACTIVATION FUNCTION",
         detailed: "Real-world data is messy and curved. Deep Learning uses 'Non-linear' functions (like ReLU or Sigmoid) to bend the lines and fit complex patterns.",
         winGif: "https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif" // Mind blown
+    }
+]
+const WRONG_FEEDBACK_OPTIONS = [
+    {
+        msg: "Dhokla khao, brain badhao! 🧠 (Eat Dhokla, grow brain!)",
+        gif: "https://media.giphy.com/media/l1IY5PRmX998H8fCw/giphy.gif" // Generic thinking/wait
+    },
+    {
+        msg: "Tumse na ho payega? Bus kidding, try again! 😉",
+        gif: "https://media.giphy.com/media/hS4ksRCT5nVxXF6wbz/giphy.gif" // Gangs of Wasseypur or similar vibe
+    },
+    {
+        msg: "Ayyo! Su kare che? Focus! 👀",
+        gif: "https://media.giphy.com/media/26n61r3YRLCxaT4dy/giphy.gif" // Confused
+    },
+    {
+        msg: "Computer says: Na bhai Na! 🙅‍♂️",
+        gif: "https://media.giphy.com/media/26hkhKd9CQzzXs2Kk/giphy.gif" // No
+    },
+    {
+        msg: "Logic error! Mota bhai is disappointed. 📉",
+        gif: "https://media.giphy.com/media/xT1XGWbE0XiBDt2T8Q/giphy.gif" // Disappointed
     }
 ]
 
@@ -120,7 +142,11 @@ const PatternPredictor = () => {
     const [userGuess, setUserGuess] = useState('')
     const [errorStatus, setErrorStatus] = useState(null)
     const inputRef = useRef(null)
-    const [showFeedback, setShowFeedback] = useState(false)
+    const [feedbackState, setFeedbackState] = useState({
+        isOpen: false,
+        type: 'success', // 'success' | 'error'
+        content: null // { msg, gif } for error
+    })
 
     const currentLevel = LEVELS[levelIndex]
     const isFinalLevel = levelIndex === LEVELS.length - 1
@@ -136,7 +162,7 @@ const PatternPredictor = () => {
         setDataIndex(0)
         setErrorStatus(null)
         setUserGuess('')
-        setShowFeedback(false)
+        setFeedbackState({ isOpen: false, type: 'success', content: null })
 
         let current = 0
         const interval = setInterval(() => {
@@ -151,7 +177,7 @@ const PatternPredictor = () => {
     }
 
     const handleNextLevel = () => {
-        setShowFeedback(false)
+        setFeedbackState(prev => ({ ...prev, isOpen: false }))
         if (levelIndex < LEVELS.length - 1) {
             setLevelIndex(prev => prev + 1)
             setStep('intro')
@@ -175,11 +201,22 @@ const PatternPredictor = () => {
                 origin: { y: 0.7 },
                 colors: ['#06b6d4', '#a855f7']
             })
+
             setTimeout(() => {
-                setShowFeedback(true)
+                setFeedbackState({
+                    isOpen: true,
+                    type: 'success',
+                    content: null
+                })
             }, 1000)
         } else {
             setErrorStatus('wrong')
+            const randomFeedback = WRONG_FEEDBACK_OPTIONS[Math.floor(Math.random() * WRONG_FEEDBACK_OPTIONS.length)]
+            setFeedbackState({
+                isOpen: true,
+                type: 'error',
+                content: randomFeedback
+            })
         }
     }
 
@@ -187,15 +224,15 @@ const PatternPredictor = () => {
         <PageWrapper>
             <div className="min-h-screen flex flex-col items-center justify-center p-6 relative z-10">
 
-                <GameFeedback 
-                    isOpen={showFeedback}
-                    isSuccess={true}
-                    gifUrl={currentLevel.winGif}
-                    title="Pattern Decoded!"
-                    description={`You found the rule: ${currentLevel.rule}`}
-                    explanation={currentLevel.detailed}
-                    onNext={handleNextLevel}
-                    nextLabel={isFinalLevel ? "Finish Experiment" : "Next Challenge"}
+                <GameFeedback
+                    isOpen={feedbackState.isOpen}
+                    isSuccess={feedbackState.type === 'success'}
+                    gifUrl={feedbackState.type === 'success' ? currentLevel.winGif : feedbackState.content?.gif}
+                    title={feedbackState.type === 'success' ? "Pattern Decoded!" : "Wrong Prediction!"}
+                    description={feedbackState.type === 'success' ? `You found the rule: ${currentLevel.rule}` : feedbackState.content?.msg}
+                    explanation={feedbackState.type === 'success' ? currentLevel.detailed : "Current pattern doesn't match the data. Try looking closely at how input changes relate to output changes."}
+                    onNext={feedbackState.type === 'success' ? handleNextLevel : () => setFeedbackState(prev => ({ ...prev, isOpen: false }))}
+                    nextLabel={feedbackState.type === 'success' ? (isFinalLevel ? "Finish Experiment" : "Next Challenge") : "Try Again"}
                 />
 
                 {/* Header - Hidden during Reveal */}
@@ -225,7 +262,7 @@ const PatternPredictor = () => {
                                 <div className="mb-8">
                                     {/* Intro Logic: First level cat, others use previous win GIF for continuity */}
                                     <img
-                                        src={levelIndex === 0 ? "https://media.giphy.com/media/unQ3IJU2RG7XMjJKqj/giphy.gif" : LEVELS[levelIndex - 1].winGif}
+                                        src={levelIndex === 0 ? "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdjBvd3V0bHhtMzZreXdkaHo2dXY5OGxraHp6eDZvZHJkcnd1OTFlbSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/4QFcVnf41d2Lb5I0MK/giphy.gif" : LEVELS[levelIndex - 1].winGif}
                                         className="w-48 h-48 object-cover rounded-2xl mx-auto opacity-80 border-2 border-white/10"
                                     />
                                 </div>
@@ -360,6 +397,63 @@ const PatternPredictor = () => {
                                             </div>
                                         </motion.div>
                                     ))}
+                                </div>
+
+                                <div className="mt-16 mb-12 p-8 bg-black/40 rounded-3xl border border-white/10 max-w-4xl mx-auto text-left relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-4 opacity-10">
+                                        <svg width="200" height="200" viewBox="0 0 100 100" fill="none" stroke="white" strokeWidth="1">
+                                            <circle cx="50" cy="50" r="40" />
+                                            <path d="M 10 50 L 90 50" />
+                                            <path d="M 50 10 L 50 90" />
+                                        </svg>
+                                    </div>
+
+                                    <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 mb-6">
+                                        Brain Anatomy: The Artificial Neuron
+                                    </h2>
+
+                                    <div className="grid md:grid-cols-2 gap-8 items-center">
+                                        <div className="space-y-4">
+                                            <p className="text-lg text-gray-300">
+                                                The equation <code className="bg-white/10 px-2 py-1 rounded text-cyan-400">y = wx + b</code> isn't just a line. It's the mathematical model of a single brain cell (Neuron)!
+                                            </p>
+                                            <ul className="space-y-3">
+                                                <li className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold border border-blue-500/50">x</div>
+                                                    <span className="text-gray-400">Input Signal</span>
+                                                </li>
+                                                <li className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400 font-bold border border-cyan-500/50">w</div>
+                                                    <span className="text-gray-400">Weight (Importance)</span>
+                                                </li>
+                                                <li className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-pink-500/20 flex items-center justify-center text-pink-400 font-bold border border-pink-500/50">b</div>
+                                                    <span className="text-gray-400">Bias (Threshold)</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+
+                                        <div className="p-6 bg-white/5 rounded-2xl border border-white/10">
+                                            <h3 className="text-xl font-bold text-orange-400 mb-2">🌶️ The "Spicy Food" Analogy</h3>
+                                            <p className="text-gray-300 text-sm mb-4">
+                                                Imagine a neuron deciding if you should eat a pepper:
+                                            </p>
+                                            <div className="space-y-2 text-sm">
+                                                <div className="flex justify-between border-b border-white/10 pb-1">
+                                                    <span><span className="text-blue-400 font-bold">Input (x)</span>: The Pepper</span>
+                                                    <span className="text-gray-500">How spicy is it?</span>
+                                                </div>
+                                                <div className="flex justify-between border-b border-white/10 pb-1">
+                                                    <span><span className="text-cyan-400 font-bold">Weight (w)</span>: Your Taste</span>
+                                                    <span className="text-gray-500">Do you love/hate spice?</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span><span className="text-pink-400 font-bold">Bias (b)</span>: Your Mood</span>
+                                                    <span className="text-gray-500">Are you hungry anyway?</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <motion.div

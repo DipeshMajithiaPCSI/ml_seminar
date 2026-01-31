@@ -1,0 +1,27 @@
+# SPEAKER NOTES: 02_Game1_Pattern_Predictor.txt
+
+## 🎤 Hook
+"Can you predict the future? Or at least, the next number?"
+
+## 🧠 Concept Explanation: The Neuron
+This game teaches **Linear Regression** in its simplest form (y = mx + c). But we call it "Pattern Recognition".
+- **Input (x)**: The number given.
+- **Output (y)**: The answer.
+- **Weight (m)**: How much the input matters.
+- **Bias (c)**: An extra nudge.
+
+## 🎢 Fun Analogy: The Spicy Food Scale
+"Imagine you are judging how spicy a curry is.
+- **Input**: Number of chillies.
+- **Weight**: How spicy that specific chili type is (Jalapeno vs Ghost Pepper).
+- **Bias**: Your personal tolerance (some people find plain water spicy!).
+- **Result**: How much you cry."
+
+## 🤓 Fun Fact
+"Your brain has 86 billion neurons doing this calculation right now just to understand this sentence. This simple game is exactly how one single neuron works."
+
+## 📜 Script / Key Talking Points
+- "Try to guess the pattern. 2 -> 4, 3 -> 6. What is 5?"
+- "Easy? That's what a computer does constantly."
+- "Watch the 'Grand Reveal' at the end. See that green node? That's a Node. It takes an input, multiplies it, adds a bias, and gives an output."
+- "If you got it wrong, don't worry. That's called 'Training Data' for your brain."

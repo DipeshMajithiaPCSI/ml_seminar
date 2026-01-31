@@ -33,49 +33,49 @@ const LEVELS = [
 const useKMeans = (points, k) => {
     const [centroids, setCentroids] = useState([])
     const [clusters, setClusters] = useState([])
-    
+
     // Run k-means when triggered
     const run = () => {
         // 1. Initialize centroids randomly (or pick k points)
         let newCentroids = []
         // Heuristic: Pick points far apart or just random
-        for(let i=0; i<k; i++) {
-             newCentroids.push({ 
-                 x: Math.random() * 100, 
-                 y: Math.random() * 100,
-                 color: i === 0 ? '#ef4444' : i === 1 ? '#3b82f6' : '#22c55e'
-             })
+        for (let i = 0; i < k; i++) {
+            newCentroids.push({
+                x: Math.random() * 100,
+                y: Math.random() * 100,
+                color: i === 0 ? '#ef4444' : i === 1 ? '#3b82f6' : '#22c55e'
+            })
         }
-        
+
         // 2. Iterate (simplified to one pass or animation steps normally, but here instant for simplicity)
         let finalClusters = []
-        for(let iter=0; iter<10; iter++) {
-             // Assign points to nearest centroid
-             const assignments = points.map(p => {
-                 let minDist = Infinity
-                 let clusterIndex = 0
-                 newCentroids.forEach((c, idx) => {
-                     const dist = Math.sqrt(Math.pow(c.x - p.x, 2) + Math.pow(c.y - p.y, 2))
-                     if(dist < minDist) {
-                         minDist = dist
-                         clusterIndex = idx
-                     }
-                 })
-                 return clusterIndex
-             })
-             
-             finalClusters = assignments
-             
-             // Update centroids
-             newCentroids = newCentroids.map((c, idx) => {
-                 const clusterPoints = points.filter((_, i) => assignments[i] === idx)
-                 if(clusterPoints.length === 0) return c
-                 const avgX = clusterPoints.reduce((sum, p) => sum + p.x, 0) / clusterPoints.length
-                 const avgY = clusterPoints.reduce((sum, p) => sum + p.y, 0) / clusterPoints.length
-                 return { ...c, x: avgX, y: avgY }
-             })
+        for (let iter = 0; iter < 10; iter++) {
+            // Assign points to nearest centroid
+            const assignments = points.map(p => {
+                let minDist = Infinity
+                let clusterIndex = 0
+                newCentroids.forEach((c, idx) => {
+                    const dist = Math.sqrt(Math.pow(c.x - p.x, 2) + Math.pow(c.y - p.y, 2))
+                    if (dist < minDist) {
+                        minDist = dist
+                        clusterIndex = idx
+                    }
+                })
+                return clusterIndex
+            })
+
+            finalClusters = assignments
+
+            // Update centroids
+            newCentroids = newCentroids.map((c, idx) => {
+                const clusterPoints = points.filter((_, i) => assignments[i] === idx)
+                if (clusterPoints.length === 0) return c
+                const avgX = clusterPoints.reduce((sum, p) => sum + p.x, 0) / clusterPoints.length
+                const avgY = clusterPoints.reduce((sum, p) => sum + p.y, 0) / clusterPoints.length
+                return { ...c, x: avgX, y: avgY }
+            })
         }
-        
+
         setCentroids(newCentroids)
         setClusters(finalClusters)
     }
@@ -86,17 +86,17 @@ const useKMeans = (points, k) => {
 const GroupTheData = () => {
     const navigate = useNavigate()
     const { completeExperiment, setScore } = useGameStore()
-    
+
     const [levelIndex, setLevelIndex] = useState(0)
     // Steps: 'intro' -> 'drawing' -> 'reveal_kmeans' -> 'reveal_dl' (only for lvl 2)
-    const [step, setStep] = useState('intro') 
+    const [step, setStep] = useState('intro')
     const [points, setPoints] = useState([])
     const [showFeedback, setShowFeedback] = useState(false)
-    
+
     // User Interaction
     const [selectedGroup, setSelectedGroup] = useState(0)
-    const [pointAssignments, setPointAssignments] = useState({}) 
-    
+    const [pointAssignments, setPointAssignments] = useState({})
+
     const level = LEVELS[levelIndex]
     const { run: runAI, centroids, clusters } = useKMeans(points, level.k)
 
@@ -104,9 +104,9 @@ const GroupTheData = () => {
     useEffect(() => {
         const pts = []
         if (level.type === 'blobs') {
-            const centers = [{x: 20, y: 20}, {x: 80, y: 20}, {x: 50, y: 80}] 
+            const centers = [{ x: 20, y: 20 }, { x: 80, y: 20 }, { x: 50, y: 80 }]
             centers.forEach((c, idx) => {
-                for(let i=0; i<8; i++) {
+                for (let i = 0; i < 8; i++) {
                     const angle = Math.random() * Math.PI * 2
                     const radius = 5 + Math.random() * 8
                     pts.push({
@@ -119,7 +119,7 @@ const GroupTheData = () => {
             })
         } else if (level.type === 'circles') {
             // Inner Circle
-            for(let i=0; i<15; i++) {
+            for (let i = 0; i < 15; i++) {
                 const angle = (i / 15) * Math.PI * 2
                 const radius = 15 + Math.random() * 5
                 pts.push({
@@ -130,7 +130,7 @@ const GroupTheData = () => {
                 })
             }
             // Outer Ring
-            for(let i=0; i<30; i++) {
+            for (let i = 0; i < 30; i++) {
                 const angle = (i / 30) * Math.PI * 2
                 const radius = 35 + Math.random() * 5
                 pts.push({
@@ -154,7 +154,7 @@ const GroupTheData = () => {
     const handleReveal = () => {
         runAI()
         setStep('reveal_kmeans')
-        
+
         if (level.type === 'blobs') {
             confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } })
         }
@@ -176,14 +176,18 @@ const GroupTheData = () => {
         if (levelIndex < LEVELS.length - 1) {
             setLevelIndex(prev => prev + 1)
         } else {
-            completeExperiment('group-the-data')
-            setScore('group-the-data', 100)
-            navigate('/experiment/4')
+            setStep('explanation')
         }
     }
 
+    const handleFinish = () => {
+        completeExperiment('group-the-data')
+        setScore('group-the-data', 100)
+        navigate('/experiment/4')
+    }
+
     const togglePoint = (pId) => {
-        if(step !== 'drawing') return
+        if (step !== 'drawing') return
         setPointAssignments(prev => ({
             ...prev,
             [pId]: selectedGroup
@@ -192,7 +196,7 @@ const GroupTheData = () => {
 
     return (
         <PageWrapper>
-            <GameFeedback 
+            <GameFeedback
                 isOpen={showFeedback}
                 isSuccess={true}
                 gifUrl={level.winGif}
@@ -204,25 +208,25 @@ const GroupTheData = () => {
             />
 
             <div className="min-h-screen flex flex-col items-center justify-center p-6 text-white max-w-6xl mx-auto">
-                
+
                 {/* Header */}
                 <div className="absolute top-8 left-8">
-                     <div className="text-xs font-mono text-cyan-400 mb-1">EXP_03 // UNSUPERVISED_LEARNING</div>
-                     <h1 className="text-3xl font-bold">Group the Data ({levelIndex + 1}/{LEVELS.length})</h1>
+                    <div className="text-xs font-mono text-cyan-400 mb-1">EXP_03 // UNSUPERVISED_LEARNING</div>
+                    <h1 className="text-3xl font-bold">Group the Data ({levelIndex + 1}/{LEVELS.length})</h1>
                 </div>
 
                 <AnimatePresence mode="wait">
                     {/* INTRO */}
                     {step === 'intro' && (
-                        <motion.div 
+                        <motion.div
                             key="intro"
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                             className="max-w-xl text-center"
                         >
                             <h2 className="text-5xl font-bold mb-6">No Labels. No Answers.</h2>
                             <p className="text-xl text-gray-400 mb-10 leading-relaxed">
-                                In the real world, data doesn't come with name tags. 
-                                <br/>
+                                In the real world, data doesn't come with name tags.
+                                <br />
                                 Intelligence is the ability to find <b>structure</b> in chaos.
                             </p>
                             <Button onClick={handleStart} size="xl">
@@ -233,7 +237,7 @@ const GroupTheData = () => {
 
                     {/* GAME / REVEAL */}
                     {(step === 'drawing' || step === 'reveal_kmeans' || step === 'reveal_dl') && (
-                        <motion.div 
+                        <motion.div
                             key="game"
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                             className="flex flex-col md:flex-row gap-12 w-full items-center"
@@ -262,7 +266,7 @@ const GroupTheData = () => {
                                         // Color logic: 
                                         let fill = '#ffffff'
                                         let opacity = 0.5
-                                        
+
                                         if (step === 'drawing') {
                                             const group = pointAssignments[p.id]
                                             if (group === 0) fill = '#ef4444' // Red
@@ -305,7 +309,7 @@ const GroupTheData = () => {
                                     ))}
 
                                 </svg>
-                                
+
                                 {/* Overlay Instruction */}
                                 {step === 'drawing' && (
                                     <div className="absolute top-4 left-0 w-full text-center pointer-events-none">
@@ -358,7 +362,7 @@ const GroupTheData = () => {
                                             <h1 className="text-4xl font-bold mb-4">
                                                 {step === 'reveal_dl' ? "Manifold Learning" : "K-Means Clustering"}
                                             </h1>
-                                            
+
                                             {step === 'reveal_kmeans' && level.type === 'circles' ? (
                                                 <div className="p-4 bg-red-900/20 border border-red-500/30 rounded-xl">
                                                     <p className="text-red-300 font-bold mb-2">FAILURE DETECTED</p>
@@ -368,9 +372,26 @@ const GroupTheData = () => {
                                                 </div>
                                             ) : (
                                                 <p className="text-gray-300 leading-relaxed">
-                                                    {step === 'reveal_dl' 
-                                                        ? "Deep Learning warped the space to separate the rings perfectly."
-                                                        : "The algorithm identified centers of gravity."}
+                                                    {step === 'reveal_dl' ? (
+                                                        <div className="space-y-4">
+                                                            <div className="p-4 bg-purple-900/20 border border-purple-500/30 rounded-xl">
+                                                                <h4 className="text-purple-300 font-bold mb-2">The Secret Formula</h4>
+                                                                <div className="font-mono text-xl text-center bg-black/40 p-3 rounded-lg mb-3 border border-white/10">
+                                                                    y = σ(Wx + b)
+                                                                </div>
+                                                                <ul className="text-sm space-y-2 text-gray-300">
+                                                                    <li><span className="text-cyan-400 font-bold">W (Weights):</span> Stretches the space.</li>
+                                                                    <li><span className="text-pink-400 font-bold">b (Bias):</span> Shifts the space.</li>
+                                                                    <li><span className="text-yellow-400 font-bold">σ (Sigma):</span> The "non-linearity" that lets us bend & fold space to separate circles.</li>
+                                                                </ul>
+                                                            </div>
+                                                            <p className="text-gray-300 text-sm">
+                                                                Traditional ML draws straight lines. Deep Learning captures the <b>shape</b> of the data by warping the coordinate system.
+                                                            </p>
+                                                        </div>
+                                                    ) : (
+                                                        "The algorithm identified centers of gravity."
+                                                    )}
                                                 </p>
                                             )}
                                         </div>
@@ -388,10 +409,65 @@ const GroupTheData = () => {
                                 )}
                             </div>
                         </motion.div>
+
+                    )}
+
+                    {/* EXPLANATION */}
+                    {step === 'explanation' && (
+                        <motion.div
+                            key="explanation"
+                            initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+                            className="max-w-4xl text-center space-y-12"
+                        >
+                            <h2 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+                                The "Rubber Sheet" Trick
+                            </h2>
+
+                            <div className="grid md:grid-cols-2 gap-8 items-center text-left">
+                                <div className="space-y-6">
+                                    <p className="text-xl text-gray-300 leading-relaxed">
+                                        Imagine red marbles in the center of a rubber sheet, with blue marbles around them.
+                                        You can't separate them with a single straight knife cut.
+                                    </p>
+                                    <div className="p-6 bg-white/5 rounded-2xl border border-white/10">
+                                        <h4 className="font-bold text-cyan-400 mb-2">✨ The Solution</h4>
+                                        <p className="text-sm text-gray-400">
+                                            Just <span className="text-purple-400 font-bold">Punch the Middle UP</span>!
+                                        </p>
+                                        <p className="text-sm text-gray-400 mt-2">
+                                            Now the red marbles are on top of a hill. You can easily slice them off with one flat cut.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div className="bg-black/40 p-6 rounded-2xl border border-white/10 text-center relative overflow-hidden flex flex-col items-center justify-center min-h-[200px]">
+                                        <div className="text-6xl mb-4 animate-bounce">👊 ⬆️ ⛰️</div>
+                                        <p className="text-sm text-gray-400 italic">
+                                            "Don't cut. Warp the space."
+                                        </p>
+                                        <div className="absolute top-0 right-0 p-2 text-xs text-gray-600 font-mono">
+                                            z = x² + y²
+                                        </div>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-sm text-yellow-400 font-bold">
+                                            This is how AI handles complex data.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="pt-8">
+                                <Button onClick={handleFinish} size="xl" className="shadow-2xl shadow-purple-500/20">
+                                    Next: Context & Language (Transformers) →
+                                </Button>
+                            </div>
+                        </motion.div>
                     )}
                 </AnimatePresence>
             </div>
-        </PageWrapper>
+        </PageWrapper >
     )
 }
 

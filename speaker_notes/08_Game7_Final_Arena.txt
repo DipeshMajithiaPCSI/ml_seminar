@@ -1,0 +1,40 @@
+# SPEAKER NOTES: 08_Game7_Final_Arena.txt
+
+## 🎤 Hook
+"You are now the Architect. It's time to build your own AI from scratch."
+
+## 🧠 Concept Explanation: The Final Integration
+This game combines everything.
+1.  **Linear Regression**: The Foundation.
+2.  **Multiple Regression**: Handling Complexity.
+3.  **Self-Attention**: Understanding Relationships.
+4.  **Attention Mechanism**: Focusing Focus.
+5.  **Diffusion**: Creativity.
+
+## 🎢 Visual Feedback Guide (What to look for!)
+Since we "Show, Don't Tell", guide the audience to these cues:
+
+### Stage 1: Linear Regression (Ice Cream vs Temp)
+-   **Wrong Answer**: "Look at that RED line! It connects every dot like a crazy zig-zag. That is **Overfitting**. It memorized the noise."
+-   **Correct Answer**: "See the BLUE line? It cuts through the middle. It ignores the outliers. That is **Generalization**."
+
+### Stage 2: Multiple Regression (Sales Prediction)
+-   **Wrong Answer**: "You only connected 'Temperature'. You ignored 'Price'. The model failed."
+-   **Correct Answer**: "All 3 inputs connected! The network is fully dense."
+
+### Stage 3: Self-Attention (The Robot)
+-   **Wrong Answer**: "The model thinks 'IT' refers to 'Apple'. Apples don't get hungry! Context failure."
+-   **Correct Answer**: "IT -> Robot. Perfect. It understands the sentence logic."
+
+### Stage 4: Attention Mechanism (The Spotlight)
+-   **Wrong Answer**: "Whoa, **Floodlight**! It's highlighting everything. That's inefficient."
+-   **Correct Answer**: "**Spotlight** on! Only the key terms lit up."
+
+### Stage 5: Diffusion (The Art)
+-   **Wrong Answer**: "Glitch city. Just random pixels rearrangements."
+-   **Correct Answer**: "From noise... to Art. That is the power of Generative AI."
+
+## 📜 Script / Key Talking Points
+- "This is the final exam. But it's visual."
+- "If you get it wrong, don't worry—look at the visual. It will show you WHY it failed."
+- "When you finish this, you are officially a Gradient Descent Graduate."
