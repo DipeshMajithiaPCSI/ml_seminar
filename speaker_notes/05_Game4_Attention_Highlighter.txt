@@ -1,23 +1,89 @@
-# SPEAKER NOTES: 05_Game4_Attention_Highlighter.txt
+🎮 GAME 4 — Attention Highlighter
+Story: Exam Questions
 
-## 🎤 Hook
-"You don't read every word in a book. You skim. AI used to be bad at skimming."
+“You know when you read an exam question…
 
-## 🧠 Concept Explanation: Attention Mechanism
-- **Old Way (RNNs)**: Reading word by word by word. Forgetting the beginning by the time you reach the end.
-- **New Way (Transformers)**: Looking at the *whole page* at once and shining a spotlight on what matters.
+And there’s one sentence like:
+‘Except for which of the following…’
 
-## 🎢 Fun Analogy: The Cocktail Party Effect
-"Imagine you are at a noisy party. 100 people are talking.
-- You don't listen to everyone.
-- You filter out the noise and 'attend' only to the person saying your name or sharing gossip.
-- That filter is the **Attention Mechanism**."
+And suddenly everything else becomes irrelevant?”
 
-## 🤓 Fun Fact
-"The paper that invented this changed the world overnight. It was titled simply: 'Attention Is All You Need'. It is the reason ChatGPT exists today."
+Punchline
+“Your brain just applied attention.
 
-## 📜 Script / Key Talking Points
-- "Look at the blurred text."
-- "Hover your mouse. See how it clears up?"
-- "See how keywords light up? That is the AI deciding 'This word is important'."
-- "Without attention, AI is like a student who memorizes the textbook but understands nothing."
+Highlighting what matters.
+Ignoring the rest.”
+
+🎤 SPEAKER NOTES — 05_Game4_Attention_Highlighter
+🎤 Hook
+
+“You don’t read every word on a page.
+AI used to.”
+
+🧠 Concept Explanation
+
+“Early AI systems processed language one word at a time.
+
+They read from left to right, slowly.
+By the time they reached the end of a sentence, they had already forgotten the beginning.
+
+This made understanding long sentences extremely hard.”
+
+🧠 Core Idea: Attention
+
+“Modern AI works differently.
+
+Instead of reading word by word, it looks at the entire sentence at once.
+
+Then it decides which words matter more than others.
+
+This decision process is called attention.”
+
+🎢 Fun Analogy
+
+“Imagine standing in a crowded cocktail party.
+
+Dozens of conversations are happening around you.
+
+You don’t hear everything.
+You filter out the noise.
+
+When someone says your name, your attention locks on instantly.
+
+That filtering mechanism is attention.”
+
+🧠 What Attention Actually Does
+
+“Every word checks every other word.
+
+It asks:
+
+‘Are you important to me?’
+
+‘Should I care about you right now?’
+
+‘Do you change my meaning?’”
+
+🤓 Fun Fact
+
+“The research paper that introduced this idea was titled ‘Attention Is All You Need.’
+
+That single idea completely replaced older language models and enabled systems like ChatGPT.”
+
+📜 Script / Key Talking Points
+
+“Look at the text on screen.”
+
+“Notice how it’s blurred.”
+
+“As I move the cursor, certain words become clear.”
+
+“Those highlighted words are where the model is focusing.”
+
+“Different words get different importance.”
+
+“This is how AI understands relationships, not just sequences.”
+
+“Without attention, AI can memorize text.”
+
+“With attention, AI can understand it.”

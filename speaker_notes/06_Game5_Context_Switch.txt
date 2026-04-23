@@ -1,23 +1,91 @@
-# SPEAKER NOTES: 06_Game5_Context_Switch.txt
+🎮 GAME 5 — Context Switch
+Story: ‘Nice’ Text Message
 
-## 🎤 Hook
-"One word can mean two completely different things based on who is saying it."
+“If your boss texts you:
+‘Nice.’
 
-## 🧠 Concept Explanation: Context & Values (Vectors)
-- **Token**: A word (e.g., "Apple").
-- **Embedding**: The meaning of that word.
-- **Context Switch**: Changing the meaning based on surroundings (e.g., "Apple" the fruit vs "Apple" the tech company).
+You panic.
 
-## 🎢 Fun Analogy: "Bank"
-"If I say 'I am going to the **bank**'... where am I going?
-- If I have a fishing rod? -> River Bank.
-- If I have a checkbook? -> Money Bank.
-- The word is the same. The *Context* changes the destination."
+If your friend texts you:
+‘Nice.’
 
-## 🤓 Fun Fact
-"Modern LLMs track thousands of context dimensions. They know that 'Jaguar' means a car in a sentence about speed, but a cat in a sentence about the jungle, instantly."
+You relax.
 
-## 📜 Script / Key Talking Points
-- "We have the word 'Play'."
-- "Toggle the Context Switch involved: 'Music' vs 'Sports'."
-- "Watch the values change! The AI is literally changing its mind about what the word means."
+Same word.
+Very different meaning.”
+
+Punchline
+“Context is everything.
+
+AI doesn’t store meanings.
+It adjusts them.”
+
+🎤 SPEAKER NOTES — 06_Game5_Context_Switch
+🎤 Hook
+
+“One word can mean completely different things…
+depending on context.”
+
+🧠 Concept Explanation
+
+“AI does not store fixed dictionary definitions.
+
+Instead, it represents meaning as numbers.
+
+Those numbers change based on surrounding words.
+
+That changing meaning is called context.”
+
+🧠 Tokens and Meaning
+
+“A word is broken into a token.
+
+Each token has a meaning represented as a position in space.
+
+When context changes, that position moves.”
+
+🎢 Fun Analogy
+
+“If I say: ‘I’m going to the bank’…
+
+If I’m holding a fishing rod, you imagine a river bank.
+If I’m holding a credit card, you imagine a financial bank.
+
+Same word.
+Different meaning.
+
+Context decides.”
+
+🧠 What the Model Is Doing
+
+“The model is constantly asking:
+
+‘What is this word connected to?’
+
+‘What came before it?’
+
+‘What comes after it?’”
+
+🤓 Fun Fact
+
+“Modern language models track thousands of context dimensions at once.
+
+They instantly know that ‘Jaguar’ refers to a car in a sentence about speed, and an animal in a sentence about the jungle.”
+
+📜 Script / Key Talking Points
+
+“Here is the word on screen.”
+
+“Watch what happens when I switch the context.”
+
+“Notice how the values change.”
+
+“The model isn’t confused.”
+
+“It’s adapting its understanding.”
+
+“This is why modern AI can follow conversation.”
+
+“Meaning is not fixed.”
+
+“Meaning is relational.”
