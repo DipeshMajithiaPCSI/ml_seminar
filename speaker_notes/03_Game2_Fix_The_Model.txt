@@ -1,27 +1,76 @@
-# SPEAKER NOTES: 03_Game2_Fix_The_Model.txt
+Story: Learning to Park a Car
 
-## 🎤 Hook
-"Okay, the AI is broken. It thinks a Pizza costs $500. Let's fix it."
+“Think about the first time you tried to park a car.
 
-## 🧠 Concept Explanation: Gradient Descent & Loss
-Here we introduce **Training**.
-- **Error (Loss)**: Distinct between the prediction (Red Point) and reality (Green Point).
-- **Sliders (Weights/Bias)**: The knobs we turn to reduce the error.
-- **The Goal**: Minimize the distance.
+You didn’t land perfectly.
 
-## 🎢 Fun Analogy: The Lost Hiker (Gradient Descent)
-"Imagine you are lost on a mountain at night (High Error). You want to get to the village in the valley (Low Error).
-- You can't see the whole map.
-- You can only feel the slope under your feet.
-- If it goes down, you take a step.
-- That's **Gradient Descent**. Taking small steps downhill until you reach the bottom (Zero Error)."
+You were too left.
+Then too right.
+Then too forward.
+Then too back.
 
-## 🤓 Fun Fact
-"In massive models like GPT-4, they aren't tuning 2 sliders. They are tuning **1.7 Trillion** sliders simultaneously. And they are doing it blindly, just feeling the slope!"
+Each time, you adjusted a little.
 
-## 📜 Script / Key Talking Points
-- "Look at the red line. It's terrible. The error is huge."
-- "Move the 'Weight' slider. See the line rotate? That's the slope."
-- "Move the 'Bias' slider. See the line move up/down? That's the intercept."
-- "Your job is to make the Error go to zero. Go!"
-- "When you succeed, realize this: You just performed 'Backpropagation' manually."
+You didn’t teleport into the parking spot.
+You slowly corrected.”
+
+Punchline
+“That slow correction is gradient descent.
+
+AI learns like a terrible new driver.”
+
+
+
+🎤 SPEAKER NOTES — 03_Game2_Fix_The_Model
+🎤 Hook
+
+“Okay… the AI is broken.
+It thinks a pizza costs five hundred dollars.
+Let’s fix it.”
+
+🧠 Concept Explanation
+
+“This is where learning actually happens.
+
+The model makes a guess.
+Reality gives the correct answer.
+
+The difference between the two is the error.”
+
+🎢 Fun Analogy
+
+“Imagine you’re lost on a mountain at night.
+
+You can’t see the map.
+You don’t know where the village is.
+
+All you can feel is the slope under your feet.
+
+If the ground goes down, you step that way.
+You keep stepping downhill until you can’t anymore.
+
+That’s how the model learns.”
+
+🤓 Fun Fact
+
+“Large language models don’t adjust two settings like this.
+They adjust trillions — all at once — without ever seeing the full picture.”
+
+📜 Script / Key Talking Points
+
+“The red line is the model’s guess.”
+
+“The green points are reality.”
+
+“That vertical distance is the error.”
+
+“Move the weight slider. The line rotates.”
+
+“Move the bias slider. The line shifts up or down.”
+
+“Your goal is simple: reduce the error.”
+
+“If you succeed, you just trained a model.”
+
+“You manually performed backpropagation.”
+
